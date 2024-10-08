@@ -9,12 +9,12 @@ phases:
     commands:
       - echo Construyendo la imagen Docker...
       - docker docker build -t sd-pipeline-test .
-      - docker docker tag sd-pipeline-test:latest 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
+      - docker docker tag sd-pipeline-test:latest 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0
   post_build:
     commands:
       - echo Push de la imagen Docker a ECR...
-      - docker docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
+      - docker docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0
       - echo Actualizando la definición de la tarea ECS...
-      - printf '[{"name":"php-container","imageUri":"253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:%s"}]' $CODEBUILD_RESOLVED_SOURCE_VERSION > imagedefinitions.json
+      - printf '[{"name":"php-container","imageUri":"253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0"}]' $CODEBUILD_RESOLVED_SOURCE_VERSION > imagedefinitions.json
 artifacts:
   files: imagedefinitions.json
