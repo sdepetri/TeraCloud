@@ -3,18 +3,25 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Iniciando la autenticación en ECR...
-      - aws aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 253490770873.dkr.ecr.us-east-2.amazonaws.com
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 253490770873.dkr.ecr.us-east-2.amazonaws.com
+      - echo Getting the code version...
+      - export CODE_VERSION=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+    
   build:
     commands:
-      - echo Construyendo la imagen Docker...
-      - docker docker build -t sd-pipeline-test .
-      - docker docker tag sd-pipeline-test:latest 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0
+      - echo Building the Docker image...
+      - docker build -t sd-pipeline-test:${CODE_VERSION} .
+      - docker tag sd-pipeline-test:${CODE_VERSION} 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
+      - docker tag sd-pipeline-test:${CODE_VERSION} 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
   post_build:
     commands:
-      - echo Push de la imagen Docker a ECR...
-      - docker docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0
-      - echo Actualizando la definición de la tarea ECS...
-      - printf '[{"name":"php-container","imageUri":"253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:V2.0"}]' $CODEBUILD_RESOLVED_SOURCE_VERSION > imagedefinitions.json
+      - echo Pushing the Docker image to ECR...
+      - docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
+      - docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
+      - echo Writing image definition file for ECS deployment...
+      - printf '[{"name":"sd-container","imageUri":"%s"}]' 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION} > imagedefinitions.json
+
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - imagedefinitions.json
