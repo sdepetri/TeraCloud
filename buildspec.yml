@@ -1,25 +1,21 @@
-version: 0.2
-
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 253490770873.dkr.ecr.us-east-2.amazonaws.com
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
       - echo Getting the code version...
       - export CODE_VERSION=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-    
   build:
     commands:
       - echo Building the Docker image...
-      - docker build -t sd-pipeline-test:${CODE_VERSION} .
-      - docker tag sd-pipeline-test:${CODE_VERSION} 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
+      - docker build -t $ECR_REPOSITORY:${CODE_VERSION} .
+      - docker tag $ECR_REPOSITORY:${CODE_VERSION} $ECR_REGISTRY/$ECR_REPOSITORY:${CODE_VERSION}
   post_build:
     commands:
       - echo Pushing the Docker image to ECR...
-      - docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
+      - docker push $ECR_REGISTRY/$ECR_REPOSITORY:${CODE_VERSION}
       - echo Writing image definition file for ECS deployment...
-      - printf '[{"name":"sd-container","imageUri":"%s"}]' 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION} > imagedefinitions.json
-
+      - printf '[{"name":"sd-container","imageUri":"%s"}]' $ECR_REGISTRY/$ECR_REPOSITORY:${CODE_VERSION} > imagedefinitions.json
 artifacts:
   files:
     - imagedefinitions.json
