@@ -13,12 +13,10 @@ phases:
       - echo Building the Docker image...
       - docker build -t sd-pipeline-test:${CODE_VERSION} .
       - docker tag sd-pipeline-test:${CODE_VERSION} 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
-      - docker tag sd-pipeline-test:${CODE_VERSION} 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
   post_build:
     commands:
       - echo Pushing the Docker image to ECR...
       - docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION}
-      - docker push 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:latest
       - echo Writing image definition file for ECS deployment...
       - printf '[{"name":"sd-container","imageUri":"%s"}]' 253490770873.dkr.ecr.us-east-2.amazonaws.com/sd-pipeline-test:${CODE_VERSION} > imagedefinitions.json
 
