@@ -1,5 +1,5 @@
 <?php
 $instance_id = gethostname();
-echo "Hola mundo!! Servido desde la instancia: " . $instance_id;
+echo "Hola TeraCloud!! Servido desde la Server ID: " . $instance_id;
 ?>
 
